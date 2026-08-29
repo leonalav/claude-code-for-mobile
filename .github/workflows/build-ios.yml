@@ -95,23 +95,21 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             build
 
-      - name: Zip .app into a folder (sideload-ready)
+      - name: Package .app into .ipa (sideload-ready)
         run: |
           cd build/Build/Products/Release-iphoneos
-          ls -la
-          # Create an .ipa-friendly folder structure
           mkdir -p Payload
           cp -r App.app Payload/
-          cd Payload
-          zip -r ../../../ClaudeCode-unsigned.zip App.app
-          cd ../..
-          ls -la *.zip
+          cd ..
+          # Zip the Payload folder so the .ipa has the standard
+          # `Payload/App.app` structure AltStore and SideStore expect.
+          zip -r Release-iphoneos/ClaudeCode-unsigned.ipa Release-iphoneos/Payload
 
-      - name: Upload unsigned artifact
+      - name: Upload unsigned .ipa artifact
         uses: actions/upload-artifact@v4
         with:
           name: ClaudeCode-unsigned
-          path: build/Build/Products/Release-iphoneos/ClaudeCode-unsigned.zip
+          path: build/Build/Products/Release-iphoneos/ClaudeCode-unsigned.ipa
           if-no-files-found: error
           retention-days: 7
 

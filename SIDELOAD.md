@@ -54,11 +54,8 @@ macOS-runner minutes per month, which is plenty for ~150 builds.)
 ### 2.3 Download the artifact
 
 1. Click the green checkmark → **ClaudeCode-unsigned** at the bottom
-2. Download the .zip (it contains `App.app`)
-3. **Important**: GitHub wraps the artifact in another .zip, so you
-   need to extract twice:
-   - `ClaudeCode-unsigned.zip` (outer GitHub wrapper)
-   - `App.app` (the actual app bundle)
+2. Download **ClaudeCode-unsigned.ipa** (an unsigned iOS app package
+   ready for AltStore / SideStore to re-sign with your Apple ID)
 
 ---
 
@@ -78,9 +75,8 @@ iPhone from Windows:
    - In AltServer, click **Install AltStore** → your iPhone
    - Enter your Apple ID when prompted
 3. **Sideload Claude Code**:
-   - Place the `App.app` folder somewhere memorable on your laptop
    - Open AltStore on your iPhone → **My Apps** → **+**
-   - Browse to `App.app` → tap to install
+   - Browse to **ClaudeCode-unsigned.ipa** → tap to install
    - First-launch: Settings → General → VPN & Device Management →
      Trust your Apple ID
 
@@ -91,9 +87,9 @@ iPhone from Windows:
      online installer at [sidestore.io/#getstarted](https://sidestore.io)
 2. **Pair SideStore with your Apple ID** in the app
 3. **Sideload Claude Code**:
-   - **Easiest**: upload `App.app` (zipped) to iCloud Drive / Google
-     Drive / Dropbox → open the file on your iPhone → choose "Open in
-     SideStore"
+   - **Easiest**: upload **ClaudeCode-unsigned.ipa** to iCloud Drive
+     / Google Drive / Dropbox → open the file on your iPhone →
+     choose "Open in SideStore"
    - SideStore re-signs with your Apple ID and installs the app
 
 ---
