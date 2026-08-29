@@ -100,10 +100,20 @@ jobs:
           cd build/Build/Products/Release-iphoneos
           mkdir -p Payload
           cp -r App.app Payload/
-          cd ..
-          # Zip the Payload folder so the .ipa has the standard
-          # `Payload/App.app` structure AltStore and SideStore expect.
-          zip -r Release-iphoneos/ClaudeCode-unsigned.ipa Release-iphoneos/Payload
+          # IMPORTANT: stay inside Release-iphoneos so the zip stores
+          # paths as `Payload/App.app`, not
+          # `Release-iphoneos/Payload/App.app`. SideStore / AltStore
+          # only accept the standard top-level `Payload/` layout.
+          zip -r ClaudeCode-unsigned.ipa Payload
+
+      - name: Verify .ipa structure
+        run: |
+          unzip -l build/Build/Products/Release-iphoneos/ClaudeCode-unsigned.ipa | head -10
+          # Sanity check: first entry must start with "Payload/"
+          unzip -l build/Build/Products/Release-iphoneos/ClaudeCode-unsigned.ipa \
+            | awk 'NR>3 && $4!="" {print $4; exit}' \
+            | grep -q '^Payload/' || (echo "ERROR: zip does not have Payload/ at root" && exit 1)
+          echo "✓ .ipa structure verified"
 
       - name: Upload unsigned .ipa artifact
         uses: actions/upload-artifact@v4
