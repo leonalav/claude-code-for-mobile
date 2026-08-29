@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  claude-server:
+    build: .
+    ports:
+      - "3456:3456"
+    environment:
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - REPO_PATH=/workspace
+      - CLAUDE_CODE_BIN=/usr/local/bin/claude-code
+      - STATIC_DIR=/app/dist
+      - PORT=3456
+    volumes:
+      - ${REPO_PATH}:/workspace
+      - ~/.claude:/root/.claude
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3456/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on:
+      - claude-server
+
+volumes:
+  caddy_data:
+  caddy_config:

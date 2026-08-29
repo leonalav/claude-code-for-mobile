@@ -1,0 +1,36 @@
+{
+  "appId": "com.anthropic.claudecode.mobile",
+  "appName": "Claude Code",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#141413",
+    "buildOptions": {
+      "developmentTeam": "",
+      "codeSignStyle": "automatic",
+      "automaticProvisioning": true
+    }
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#141413",
+      "androidSplashResourceName": "splash",
+      "iosSplashResourceName": "splash",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#141413",
+      "overlaysWebView": false
+    }
+  }
+}

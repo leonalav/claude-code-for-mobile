@@ -1,0 +1,148 @@
+# Build the iOS .ipa on a free macOS GitHub Actions runner.
+#
+# Trigger this workflow manually from the Actions tab (workflow_dispatch).
+# When it finishes, download the "claude-code-mobile-ipa" artifact and
+# sideload it via SideStore or AltStore on Windows.
+#
+# This is for personal sideloading — it uses ad-hoc / no-signing so
+# you'll need to sign with your Apple ID when installing via
+# SideStore. If you want a properly signed IPA, add your Apple ID
+# credentials as GitHub secrets (see "Optional signing" below).
+
+name: Build iOS .ipa
+
+on:
+  # Manual trigger — push to Actions tab → "Run workflow"
+  workflow_dispatch:
+  # Also run on every push to main so artifacts stay fresh
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "ios/**"
+      - "package.json"
+      - "capacitor.config.json"
+      - ".github/workflows/build-ios.yml"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        env:
+          # Disable macOS keychain prompts (no signing required)
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run build
+
+      - name: Sync to iOS
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx cap sync ios
+
+      - name: Generate app icon and splash screens
+        # ios/ is gitignored, so the asset files are rebuilt on every
+        # workflow run from public/images/claude-mark.png.
+        run: |
+          node scripts/generate-app-icon.js
+          node scripts/generate-splash.js
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install --repo-update
+          cd ../..
+
+      - name: Build .app (unsigned, simulator-style for ad-hoc)
+        env:
+          # Skip code signing — SideStore handles signing with your Apple ID
+          CODE_SIGNING_ALLOWED: "NO"
+          CODE_SIGN_IDENTITY: ""
+          CODE_SIGNING_REQUIRED: "NO"
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Zip .app into a folder (sideload-ready)
+        run: |
+          cd build/Build/Products/Release-iphoneos
+          ls -la
+          # Create an .ipa-friendly folder structure
+          mkdir -p Payload
+          cp -r App.app Payload/
+          cd Payload
+          zip -r ../../../ClaudeCode-unsigned.zip App.app
+          cd ../..
+          ls -la *.zip
+
+      - name: Upload unsigned artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeCode-unsigned
+          path: build/Build/Products/Release-iphoneos/ClaudeCode-unsigned.zip
+          if-no-files-found: error
+          retention-days: 7
+
+      # ────────────────────────────────────────────────────────────
+      # Optional: build a signed .ipa using your Apple ID
+      #
+      # To enable this:
+      #  1. Add these secrets in your repo:
+      #     APPLE_ID          — your Apple ID email
+      #     APPLE_TEAM_ID     — your Apple Developer Team ID
+      #     APPLE_APP_SPECIFIC_PASSWORD — an app-specific password
+      #                               (https://appleid.apple.com → Security)
+      #  2. Change the `if:` on the job below to `if: true` and run.
+      # ────────────────────────────────────────────────────────────
+
+      - name: Build signed .ipa
+        if: false # set to `true` after adding Apple ID secrets
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          # Import signing cert from a previous build step or skip
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            -allowProvisioningUpdates \
+            build
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -exportArchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist exportOptions.plist
+        continue-on-error: true

@@ -1,0 +1,5 @@
+# Example Caddyfile for Docker deployment
+claude.example.com {
+    reverse_proxy claude-server:3456
+    tls your-email@example.com
+}

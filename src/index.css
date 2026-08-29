@@ -1,0 +1,436 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", "Source Serif 4", ui-serif, Georgia, serif;
+  --font-body: "Source Serif 4", "Instrument Serif", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-ink: #141413;
+  --color-ink-soft: #2c2b28;
+  --color-cream: #faf9f5;
+  --color-cream-2: #f3f1ea;
+  --color-mist: #e8e6dc;
+  --color-stone: #b0aea5;
+  --color-clay: #d97757;
+  --color-clay-deep: #c2613f;
+  --color-lagoon: #6a9bcc;
+  --color-moss: #788c5d;
+  --color-blush: #f0e6dc;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+/*
+ * Runtime dark mode: Tailwind v4's @theme block emits real CSS custom
+ * properties (--color-cream, --color-ink, ...) and every utility class
+ * resolves through var(...). Re-declaring them inside .theme-dark flips
+ * every bg-cream / text-ink / bg-mist utility in the phone UI at once.
+ */
+:root {
+  --add: #1a7f37;
+  --add-bg: rgba(46, 160, 67, 0.16);
+  --add-gutter: #2ea043;
+  --del: #cf222e;
+  --del-bg: rgba(207, 34, 46, 0.13);
+  --del-gutter: #cf222e;
+  --blame-h: #6a9bcc;
+}
+
+.theme-dark {
+  --color-cream: #17160f;
+  --color-cream-2: #1f1e17;
+  --color-mist: #2b2a22;
+  --color-blush: #2a2118;
+  --color-ink: #f6f4ec;
+  --color-ink-soft: #d9d6c9;
+  --color-stone: #9a9689;
+  --color-clay: #e28a60;
+  --color-clay-deep: #d97757;
+  --color-lagoon: #85b3e0;
+  --color-moss: #93a878;
+  --add: #4ade80;
+  --add-bg: rgba(74, 222, 128, 0.15);
+  --add-gutter: #4ade80;
+  --del: #f87171;
+  --del-bg: rgba(248, 113, 113, 0.13);
+  --del-gutter: #f87171;
+  --blame-h: #85b3e0;
+}
+
+.theme-dark.accent-daltonized,
+.accent-daltonized {
+  --color-clay: #e69f00;
+  --color-clay-deep: #cc7a00;
+  --color-lagoon: #56b4e9;
+  --color-moss: #f0e442;
+}
+
+body {
+  margin: 0;
+  background: #141413;
+  color: #faf9f5;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+.phone-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.phone-frame {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  border-radius: 56px;
+  background: #0b0b0a;
+  padding: 10px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 8px #1c1b19,
+    0 40px 80px -20px rgba(0, 0, 0, 0.7),
+    0 0 120px -20px rgba(217, 119, 87, 0.22);
+}
+
+.ipad-frame {
+  position: relative;
+  width: 1180px;
+  height: 834px;
+  border-radius: 36px;
+  background: #0b0b0a;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 10px #1c1b19,
+    0 50px 90px -24px rgba(0, 0, 0, 0.72),
+    0 0 140px -20px rgba(217, 119, 87, 0.2);
+}
+
+.ipad-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #faf9f5;
+  color: #141413;
+}
+
+.ipad-camera {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 50;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #161513;
+  box-shadow: inset 0 0 0 1.5px #2a2824, 0 0 0 3px #0b0b0a;
+}
+
+.ipad-home-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  z-index: 50;
+  width: 168px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 99px;
+  background: #141413;
+  opacity: 0.8;
+}
+
+.ipad-scale {
+  transform-origin: center center;
+}
+
+.phone-scale.preview-landscape {
+  transform: rotate(90deg);
+  transition: transform 600ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.phone-scale:not(.preview-landscape) {
+  transition: transform 600ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-scale.preview-landscape,
+  .phone-scale:not(.preview-landscape) {
+    transition: none;
+  }
+}
+
+/*
+ * When the iPhone frame is rotated 90deg (`.phone-scale.preview-landscape`),
+ * everything inside it inherits the rotation. The FullscreenPreviewOverlay
+ * counter-rotates itself -90deg so its iframe content appears upright
+ * inside the rotated frame.
+ *
+ * Phone screen is 390×844 in CSS pixels. After parent rotate(90deg), the
+ * overlay's bounding box becomes 844×390. Counter-rotating the overlay
+ * -90deg brings its visual dimensions back to 844×390, perfectly filling
+ * the rotated frame.
+ */
+.preview-counter-rotate {
+  transform: rotate(-90deg);
+  transform-origin: center center;
+}
+
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 46px;
+  overflow: hidden;
+  background: #faf9f5;
+  color: #141413;
+}
+
+.dynamic-island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 50;
+  width: 126px;
+  height: 36px;
+  transform: translateX(-50%);
+  border-radius: 24px;
+  background: #0b0b0a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.home-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  z-index: 50;
+  width: 134px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 99px;
+  background: #141413;
+  opacity: 0.85;
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.slider-clay {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-clay::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #faf9f5;
+  border: 1px solid rgba(20, 20, 19, 0.08);
+  box-shadow:
+    0 1px 2px rgba(20, 20, 19, 0.18),
+    0 6px 16px rgba(217, 119, 87, 0.28);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+
+.slider-clay::-webkit-slider-thumb:active {
+  transform: scale(1.08);
+  cursor: grabbing;
+}
+
+.slider-clay::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #faf9f5;
+  border: 1px solid rgba(20, 20, 19, 0.08);
+  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.18);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes ring-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.anim-rise {
+  animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.anim-sheet {
+  animation: sheet-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dot-pulse {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+.wave-bar {
+  transform-origin: center;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.typing-dot {
+  animation: typing 1.1s ease-in-out infinite;
+}
+
+.ring-pulse {
+  animation: ring-pulse 1.6s ease-out infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #e8e6dc 0%, #faf9f5 45%, #e8e6dc 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.press {
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+.press:active {
+  transform: scale(0.94);
+}
+
+.phone-scale {
+  transform-origin: center center;
+}
+
+@media (max-height: 900px) {
+  .phone-scale {
+    transform: scale(0.88);
+  }
+}
+
+@media (max-height: 800px) {
+  .phone-scale {
+    transform: scale(0.78);
+  }
+}
+
+@media (max-width: 480px) {
+  .phone-scale {
+    transform: none;
+    width: 100%;
+  }
+
+  .phone-frame {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    background: #0b0b0a;
+  }
+
+  .phone-screen {
+    border-radius: 0;
+  }
+}
