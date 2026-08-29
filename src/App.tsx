@@ -1555,7 +1555,7 @@ export default function App() {
     return (
       <LayoutContext.Provider value="phone">
         <div
-          className="relative min-h-dvh bg-ink"
+          className="relative flex h-dvh w-full flex-col overflow-hidden bg-ink"
           style={{ fontFamily: "var(--font-sans)" }}
         >
           {inner}
