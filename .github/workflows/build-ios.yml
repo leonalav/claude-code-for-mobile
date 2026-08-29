@@ -48,14 +48,21 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npm run build
 
-      - name: Sync to iOS
+      - name: Add iOS platform
+        # ios/ is gitignored, so the macOS runner must add the
+        # platform from scratch on every build.
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx cap add ios
+
+      - name: Sync web build into iOS
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npx cap sync ios
 
       - name: Generate app icon and splash screens
-        # ios/ is gitignored, so the asset files are rebuilt on every
-        # workflow run from public/images/claude-mark.png.
+        # Overwrite the default Capacitor icons with the Claude Code
+        # branded ones from public/images/claude-mark.png.
         run: |
           node scripts/generate-app-icon.js
           node scripts/generate-splash.js
