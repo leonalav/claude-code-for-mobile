@@ -140,7 +140,7 @@ export function Composer({
               }
             }}
             placeholder="Message Claude Code — type @ to mention a file"
-            className="max-h-24 min-w-[120px] flex-1 resize-none bg-transparent text-[14.5px] leading-5 text-ink outline-none placeholder:text-stone"
+            className="max-h-24 min-w-[120px] flex-1 resize-none bg-transparent text-[16px] leading-5 text-ink outline-none placeholder:text-stone"
           />
         </div>
         <button

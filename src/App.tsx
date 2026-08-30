@@ -1581,12 +1581,15 @@ export default function App() {
     </div>
   ) : (
     <div className="flex h-full flex-col bg-cream text-ink">
-      {/* On Capacitor iOS the native status bar is drawn outside the
-          WKWebView (StatusBar.overlaysWebView = false), so the chat
-          area starts at y=0 of the view. The only bottom inset we need
-          is for the home indicator, which TabBar handles via
-          env(safe-area-inset-bottom). */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      {/* Defensive top safe-area. Capacitor (with overlaysWebView: false)
+          already pushes the WKWebView below the iOS status bar, so this
+          normally resolves to 0. If a future iOS or Android change ever
+          causes the web view to extend under the status bar, this kicks
+          in and keeps the chat header from being painted under the clock. */}
+      <div
+        className="flex min-h-0 flex-1 flex-col"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
         {tab === "chat" && chatColumn}
         {restTabs}
       </div>

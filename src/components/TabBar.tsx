@@ -19,17 +19,8 @@ export function TabBar({
   onChange: (id: TabId) => void;
 }) {
   return (
-    <nav
-      className="relative shrink-0 border-t border-ink/6 bg-cream/92 px-1 pt-1.5 backdrop-blur-xl"
-      style={{
-        // On iPhones with a home indicator (X, XS, 11, 12, 13, 14, 15 Pro
-        // etc.) we need at least 34px of bottom padding so the tab labels
-        // don't sit underneath the indicator. Older devices without one
-        // report 0 here, falling back to a comfortable 18px gutter.
-        paddingBottom: "max(18px, calc(env(safe-area-inset-bottom, 0px) + 6px))",
-      }}
-    >
-      <div className="grid grid-cols-6">
+    <nav className="relative shrink-0 border-t border-ink/6 bg-cream backdrop-blur-xl">
+      <div className="grid grid-cols-6 px-1 pt-1.5 pb-3">
         {tabs.map((tab) => {
           const active = current === tab.id;
           const Icon = tab.icon;
@@ -64,6 +55,13 @@ export function TabBar({
           );
         })}
       </div>
+      {/* Safe-area filler: without this, the WKWebView background (#141413
+          in light mode, near-black in dark mode) is visible below the
+          TabBar under the home indicator. This sibling shares the same
+          --color-cream so the TabBar visually fills all the way to the
+          bottom of the screen on every iPhone that has a home indicator.
+          On devices without one it falls back to 0px and disappears. */}
+      <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
     </nav>
   );
 }

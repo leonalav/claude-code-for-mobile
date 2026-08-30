@@ -94,6 +94,27 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/*
+ * iOS WKWebView auto-zooms the entire viewport whenever a focusable
+ * form element has a computed font-size under ~16px — and notoriously
+ * fails to restore the previous zoom level after the keyboard is
+ * dismissed, leaving the app "stuck" at the larger scale. Tailwind
+ * utility classes that use text-[14px] / text-[12.5px] etc. on inputs
+ * and textareas trip this. We force a 16px baseline on every focusable
+ * form element on iOS, with !important so the Tailwind classes cannot
+ * silently lower it again.
+ *
+ * `@supports (-webkit-touch-callout: none)` scopes the rule to WebKit
+ * (iOS, Safari, WKWebView) so the desktop demo isn't affected.
+ */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 * {
   scrollbar-width: none;
 }

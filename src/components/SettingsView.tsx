@@ -265,7 +265,7 @@ function CustomEndpointPanel({
           value={settings.customBaseUrl}
           onChange={(e) => onChange("customBaseUrl", e.target.value)}
           placeholder="https://api.your-proxy.com"
-          className="w-full rounded-lg border border-ink/10 bg-cream px-2.5 py-2 font-mono text-[11.5px] text-ink outline-none focus:border-clay"
+          className="w-full rounded-lg border border-ink/10 bg-cream px-2.5 py-2 font-mono text-[15px] text-ink outline-none focus:border-clay"
         />
       </div>
 
@@ -279,7 +279,7 @@ function CustomEndpointPanel({
             value={settings.customApiKey}
             onChange={(e) => onChange("customApiKey", e.target.value)}
             placeholder="sk-..."
-            className="min-w-0 flex-1 bg-transparent py-0.5 font-mono text-[11.5px] text-ink outline-none"
+            className="min-w-0 flex-1 bg-transparent py-0.5 font-mono text-[15px] text-ink outline-none"
           />
           <button
             type="button"
@@ -348,7 +348,7 @@ function CustomEndpointPanel({
           value={settings.customModel}
           onChange={(e) => onChange("customModel", e.target.value)}
           placeholder="e.g. llama-3.1-70b-instruct"
-          className="w-full rounded-lg border border-ink/10 bg-cream px-2.5 py-2 font-mono text-[11.5px] text-ink outline-none focus:border-clay"
+          className="w-full rounded-lg border border-ink/10 bg-cream px-2.5 py-2 font-mono text-[15px] text-ink outline-none focus:border-clay"
         />
         <p className="mt-1 text-[10px] leading-relaxed text-stone">
           Pick a model above to fill this in, or type any custom model name your endpoint serves.
@@ -459,7 +459,7 @@ function McpServerCard({
               value={server.customConfig ?? ""}
               onChange={(e) => onChange({ customConfig: e.target.value })}
               rows={4}
-              className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-2 font-mono text-[10.5px] leading-relaxed text-ink-soft outline-none focus:border-clay"
+              className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-2 font-mono text-[15px] leading-relaxed text-ink-soft outline-none focus:border-clay"
               placeholder='{\n  "tools": [...],\n  "timeout": 30000\n}'
             />
           </div>
@@ -498,14 +498,14 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-1.5 font-mono text-[10.5px] leading-relaxed text-ink outline-none focus:border-clay"
+          className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-1.5 font-mono text-[15px] leading-relaxed text-ink outline-none focus:border-clay"
         />
       ) : (
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-1.5 font-mono text-[10.5px] text-ink outline-none focus:border-clay"
+          className="w-full rounded-lg border border-ink/10 bg-cream-2 px-2.5 py-1.5 font-mono text-[15px] text-ink outline-none focus:border-clay"
         />
       )}
     </div>
@@ -707,7 +707,7 @@ export function SettingsView({
                 window.localStorage.setItem("publicPreviewUrl", e.target.value);
               }}
               placeholder="https://my-vm.example.com"
-              className="w-full rounded-lg border border-ink/10 bg-mist px-2.5 py-1.5 font-mono text-[11px] text-ink placeholder:text-stone/50 focus:border-lagoon/40 focus:outline-none"
+              className="w-full rounded-lg border border-ink/10 bg-mist px-2.5 py-1.5 font-mono text-[15px] text-ink placeholder:text-stone/50 focus:border-lagoon/40 focus:outline-none"
             />
           </Row>
           <p className="-mt-2 px-1 text-[10.5px] leading-snug text-stone">
