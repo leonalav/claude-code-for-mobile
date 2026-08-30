@@ -17,6 +17,11 @@
   --color-lagoon: #6a9bcc;
   --color-moss: #788c5d;
   --color-blush: #f0e6dc;
+  /* `screen` is the chrome outside the app (status-bar gutter, native
+   * shell padding, etc). It intentionally does NOT flip into a light
+   * color in dark mode — we always want the area surrounding the phone
+   * UI to stay dark. In dark mode it just goes a touch darker. */
+  --color-screen: #141413;
 }
 
 html,
@@ -56,6 +61,7 @@ body,
   --color-clay-deep: #d97757;
   --color-lagoon: #85b3e0;
   --color-moss: #93a878;
+  --color-screen: #050505;
   --add: #4ade80;
   --add-bg: rgba(74, 222, 128, 0.15);
   --add-gutter: #4ade80;
@@ -80,9 +86,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
-  position: fixed;
-  inset: 0;
+  /* Capacitor iOS shrinks <body> when the keyboard appears (because
+   * capacitor.config.json sets KeyboardResizeMode: "body"). We keep
+   * body as a normal block element so Capacitor can resize it freely,
+   * and rely on the html-body-#root height: 100% chain above to keep
+   * things filled while the keyboard is hidden. */
+  overscroll-behavior-y: contain;
 }
 
 * {

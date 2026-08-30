@@ -19,7 +19,16 @@ export function TabBar({
   onChange: (id: TabId) => void;
 }) {
   return (
-    <nav className="absolute inset-x-0 bottom-0 z-30 border-t border-ink/6 bg-cream/92 px-1 pb-[18px] pt-1.5 backdrop-blur-xl">
+    <nav
+      className="relative shrink-0 border-t border-ink/6 bg-cream/92 px-1 pt-1.5 backdrop-blur-xl"
+      style={{
+        // On iPhones with a home indicator (X, XS, 11, 12, 13, 14, 15 Pro
+        // etc.) we need at least 34px of bottom padding so the tab labels
+        // don't sit underneath the indicator. Older devices without one
+        // report 0 here, falling back to a comfortable 18px gutter.
+        paddingBottom: "max(18px, calc(env(safe-area-inset-bottom, 0px) + 6px))",
+      }}
+    >
       <div className="grid grid-cols-6">
         {tabs.map((tab) => {
           const active = current === tab.id;

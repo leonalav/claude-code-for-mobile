@@ -8,6 +8,7 @@
   "ios": {
     "contentInset": "automatic",
     "backgroundColor": "#141413",
+    "KeyboardResizeMode": "body",
     "buildOptions": {
       "developmentTeam": "",
       "codeSignStyle": "automatic",

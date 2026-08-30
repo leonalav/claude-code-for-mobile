@@ -84,6 +84,48 @@ function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Belt-and-suspenders fallback for Capacitor iOS keyboard handling.
+ *
+ * We set `KeyboardResizeMode: "body"` in capacitor.config.json so the
+ * native shell sets `document.body.style.height` inline whenever the
+ * keyboard shows/hides. That works most of the time, but on some iOS
+ * versions the keyboard's hide event can fire before Capacitor has
+ * cleared the inline style — leaving the app visually "stuck" at the
+ * shrunken height.
+ *
+ * This hook watches `visualViewport` (which always reports the actual
+ * visible area, regardless of any inline body styles), and clears the
+ * stale inline `body.height` whenever the viewport reports no keyboard
+ * is covering the screen.
+ */
+function useKeyboardFallback() {
+  useEffect(() => {
+    if (!isNative) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const reconcile = () => {
+      // When no keyboard is up, the visual viewport spans the full
+      // window. If Capacitor's inline `body.height` is still set to a
+      // smaller value, body and #root are stuck shrunken — clear it.
+      const visibleFraction = vv.height / window.innerHeight;
+      const keyboardUp = visibleFraction < 0.85;
+      if (!keyboardUp && document.body.style.height) {
+        document.body.style.height = "";
+      }
+    };
+
+    vv.addEventListener("resize", reconcile);
+    vv.addEventListener("scroll", reconcile);
+    reconcile();
+    return () => {
+      vv.removeEventListener("resize", reconcile);
+      vv.removeEventListener("scroll", reconcile);
+    };
+  }, []);
+}
+
 /** Rough client-side token estimate (~4 chars/token) for the context bar. */
 function estimateTokens(messages: Message[]) {
   let chars = 0;
@@ -589,6 +631,9 @@ export default function App() {
 
   // Initialize Capacitor plugins (StatusBar, SplashScreen) on native.
   useCapacitorInit();
+  // Safety net: clears a stuck `body.style.height` if Capacitor's
+  // keyboardDidHide event ever lags behind the visualViewport.
+  useKeyboardFallback();
 
   // Any tab change exits preview-landscape and closes the fullscreen
   // preview overlay so the frame returns to portrait.
@@ -1535,11 +1580,13 @@ export default function App() {
       {overlays}
     </div>
   ) : (
-    <div className="relative h-full bg-cream text-ink">
-      <div
-        className="absolute inset-x-0 top-[54px] bottom-[86px] flex flex-col"
-        style={{ fontFamily: "var(--font-sans)" }}
-      >
+    <div className="flex h-full flex-col bg-cream text-ink">
+      {/* On Capacitor iOS the native status bar is drawn outside the
+          WKWebView (StatusBar.overlaysWebView = false), so the chat
+          area starts at y=0 of the view. The only bottom inset we need
+          is for the home indicator, which TabBar handles via
+          env(safe-area-inset-bottom). */}
+      <div className="flex min-h-0 flex-1 flex-col">
         {tab === "chat" && chatColumn}
         {restTabs}
       </div>
@@ -1555,7 +1602,14 @@ export default function App() {
     return (
       <LayoutContext.Provider value="phone">
         <div
-          className="relative flex h-dvh w-full flex-col overflow-hidden bg-ink"
+          className={cn(
+            // h-full so we follow <body>'s height. With Capacitor's
+            // KeyboardResizeMode: "body", body gets resized when the
+            // keyboard appears — this shell follows that resize, so the
+            // composer stays pinned to the visible edge above the keyboard.
+            "relative flex h-full min-h-screen w-full flex-col overflow-hidden bg-screen",
+            isDark && "theme-dark",
+          )}
           style={{ fontFamily: "var(--font-sans)" }}
         >
           {inner}
