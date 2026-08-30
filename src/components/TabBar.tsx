@@ -32,7 +32,7 @@ export function TabBar({
         keyboardOpen && "translate-y-full",
       )}
     >
-      <div className="grid grid-cols-6 px-1 pt-1.5 pb-3">
+      <div className="grid grid-cols-6 px-1 pt-1 pb-2">
         {tabs.map((tab) => {
           const active = current === tab.id;
           const Icon = tab.icon;
@@ -41,7 +41,7 @@ export function TabBar({
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
-              className="press flex flex-col items-center gap-0.5 py-1"
+              className="press flex flex-col items-center gap-0.5 py-0.5"
             >
               <span
                 className={cn(

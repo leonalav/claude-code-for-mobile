@@ -59,7 +59,7 @@ export function PluginsView({
   const [openId, setOpenId] = useState<string>("code-review");
 
   return (
-    <div className="phone-scroll h-full px-4 pb-6 pt-2">
+    <div className="phone-scroll h-full px-4 pb-3 pt-2">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone">
         /plugin extensions
       </p>
@@ -117,6 +117,10 @@ export function PluginsView({
                 >
                   <span
                     className={cn(
+                      // The thumb is a small circle that sits on top of the
+                      // track. In dark mode bg-cream flips to a dark color
+                      // so the thumb remains visible against the lighter
+                      // track.
                       "absolute top-0.5 h-5 w-5 rounded-full bg-cream shadow-sm transition-transform",
                       plugin.enabled ? "translate-x-5" : "translate-x-0.5",
                     )}

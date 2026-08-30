@@ -568,7 +568,7 @@ export function SettingsView({
   );
 
   return (
-    <div className="phone-scroll h-full px-4 pb-6 pt-2">
+    <div className="phone-scroll h-full px-4 pb-3 pt-2">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone">
         /config · /settings
       </p>

@@ -1593,8 +1593,12 @@ export default function App() {
           safe-area-inset-top (iPhone notch, dynamic island, Android
           cutouts), this ensures the cream background extends all the way
           up to the iOS status bar — without it, the WKWebView's dark
-          background shows behind the notch. Falls back to 0px on web. */}
-      <div style={{ height: 'env(safe-area-inset-top, 0px)' }} />
+          background shows behind the notch.
+          Capacitor with overlaysWebView:false reports the value correctly
+          on most devices, but a minimum 22px fallback is enforced so
+          section headings never sit under the earpiece / Dynamic Island
+          on any iPhone that doesn't report the inset to the web view. */}
+      <div style={{ height: 'max(env(safe-area-inset-top, 0px), 22px)' }} />
       <div className="flex min-h-0 flex-1 flex-col">
         {tab === "chat" && chatColumn}
         {restTabs}
@@ -1616,7 +1620,13 @@ export default function App() {
             // KeyboardResizeMode: "body", body gets resized when the
             // keyboard appears — this shell follows that resize, so the
             // composer stays pinned to the visible edge above the keyboard.
-            "relative flex h-full min-h-screen w-full flex-col overflow-hidden bg-screen",
+            //
+            // We intentionally do NOT use min-h-screen here — that would
+            // force the wrapper to be at least 100vh tall, which on a
+            // keyboard-shrunken body leaves a dark gap below the cream
+            // inner content. h-full alone keeps the wrapper matched to
+            // body's current height on every resize.
+            "relative flex h-full w-full flex-col overflow-hidden bg-cream",
             isDark && "theme-dark",
           )}
           style={{ fontFamily: "var(--font-sans)" }}
