@@ -80,6 +80,24 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
+/**
+ * Toggle pill — the standard iOS-style switch.
+ *
+ * Track:  h-6 (24px tall) × w-11 (44px wide), 22px of horizontal travel.
+ * Knob:   h-5 (20px tall) × w-5 (20px wide), 2px outer gap on both sides.
+ *
+ * Off state: `translateX(2px)` → knob at the LEFT, 22px of "off" track to
+ *            the right of it. Standard iOS convention.
+ * On  state: `translateX(24px)` → knob's right edge lands at 24+20=44px,
+ *            exactly at the right edge of the track. Knob stays inside
+ *            the pill — important: an earlier `translate-x-5` (20px)
+ *            value paired with a 4px right gap looked like the knob was
+ *            about to fall out of the pill.
+ *
+ * Vertically the knob is centered: pill is 24px, knob is 20px, so a
+ * 2px top offset (`top-0.5`) gives a centered 20px-tall knob with 2px
+ * of margin above and below. Shadow on the knob sells the depth.
+ */
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
     <button
@@ -88,14 +106,14 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       aria-checked={on}
       onClick={onClick}
       className={cn(
-        "relative h-6 w-11 rounded-full transition-colors",
+        "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
         on ? "bg-clay" : "bg-mist",
       )}
     >
       <span
         className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-cream shadow-sm transition-transform",
-          on ? "translate-x-5" : "translate-x-0.5",
+          "absolute top-0.5 left-0 h-5 w-5 rounded-full bg-cream shadow-sm transition-transform duration-200 ease-out",
+          on ? "translate-x-[22px]" : "translate-x-0.5",
         )}
       />
     </button>

@@ -85,48 +85,122 @@ function uid(prefix: string) {
 }
 
 /**
- * Detects when the on-screen keyboard is open and manages two side-effects:
+ * Detects when the on-screen keyboard is open and returns `keyboardOpen`
+ * so the native shell can push the TabBar off-screen (translateY 100%)
+ * when the keyboard is up. iOS draws the keyboard as a native overlay
+ * that covers whatever is at the bottom of the WKWebView; pushing the
+ * TabBar down makes it sit behind that overlay rather than floating
+ * above it.
  *
- *  1. **TabBar hide** — returns `keyboardOpen` so the native shell can push
- *     the TabBar off-screen (translateY 100%) when the keyboard is up. iOS
- *     draws the keyboard as a native overlay that covers whatever is at the
- *     bottom of the WKWebView; pushing the TabBar down makes it sit behind
- *     that overlay rather than floating above it.
+ * Two signals are combined for reliability:
  *
- *  2. **Stuck-body height** — Capacitor's KeyboardResizeMode:"body" sets an
- *     inline `body.style.height` when the keyboard opens. When the keyboard
- *     closes iOS sometimes fires the event *before* Capacitor clears that
- *     style, leaving the app stuck at the shrunken height. We watch the
- *     `visualViewport` (which always reflects the true visible area) and
- *     clear any stale inline height the moment the keyboard is gone.
+ *  1. **visualViewport** — `window.innerHeight` is *not* a reliable
+ *     comparison target here because Capacitor's
+ *     `KeyboardResizeMode:"body"` shrinks `body.style.height` when the
+ *     keyboard opens, which causes `window.innerHeight` to shrink in
+ *     lockstep with `vv.height`. With body-resize mode the ratio is
+ *     always ~1.0 and the keyboard never registers as "open". Using
+ *     `screen.height` (which never changes) gives a stable denominator:
+ *     `vv.height / screen.height < 0.75` reliably fires whenever the
+ *     iOS keyboard is up (a keyboard occupies ~40–60% of the screen).
+ *
+ *  2. **focusin / focusout** — the keyboard always appears when a
+ *     focusable element (input / textarea / contenteditable) inside the
+ *     composer gains focus, and disappears when focus leaves those.
+ *     Tracking the active element and listening for `focusin` /
+ *     `focusout` is a stable signal that doesn't depend on viewport
+ *     math at all. We still keep the viewport check as a primary
+ *     trigger so any future "focus on an element that doesn't open the
+ *     keyboard" use-case (e.g. a button) doesn't keep the TabBar
+ *     hidden.
+ *
+ *  3. **Stuck-body safety net** — once the keyboard is dismissed iOS
+ *     sometimes fires the event *before* Capacitor clears its inline
+ *     `body.style.height`, leaving the app stuck at the shrunken
+ *     height. We watch the viewport and clear any stale inline body
+ *     height the moment the keyboard is gone.
  */
 function useKeyboardState() {
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     if (!isNative) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
 
+    const vv = window.visualViewport;
     const reconcile = () => {
-      // visualViewport / window.innerHeight > 0.85 means no keyboard covering
-      // the bottom of the screen (keyboard occupies roughly 40–60% of screen).
-      const visibleFraction = vv.height / window.innerHeight;
-      const keyboardUp = visibleFraction < 0.85;
-      setKeyboardOpen(keyboardUp);
+      if (!vv) return;
+      // `screen.height` is the full device height in CSS px. With the
+      // keyboard up, vv.height is roughly 40–60% of that.
+      const visibleFraction = vv.height / window.screen.height;
+      const keyboardUp = visibleFraction < 0.75;
 
       // Clear any stale inline body height once the keyboard is gone.
+      // Capacitor writes `body.style.height` to match the visible area
+      // when the keyboard opens; if it forgets to clear it on dismiss
+      // the app can get stuck at the shrunken height.
       if (!keyboardUp && document.body.style.height) {
         document.body.style.height = "";
       }
+
+      setKeyboardOpen((prev) => (prev !== keyboardUp ? keyboardUp : prev));
     };
 
-    vv.addEventListener("resize", reconcile);
-    vv.addEventListener("scroll", reconcile);
+    // Focus-based signal: keyboard always opens on input/textarea
+    // focus, closes on blur. This is the most reliable trigger and is
+    // immune to the body-resize viewport math above.
+    const onFocusIn = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el) return;
+      const tag = el.tagName;
+      const isEditable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        el.isContentEditable;
+      if (isEditable) setKeyboardOpen(true);
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (!el) return;
+      const tag = el.tagName;
+      const wasEditable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        el.isContentEditable;
+      if (!wasEditable) return;
+      // The next focused element (if any) is in `relatedTarget`. If the
+      // focus is moving to another editable element, keep the keyboard
+      // open. Otherwise close.
+      const next = e.relatedTarget as HTMLElement | null;
+      if (!next) {
+        setKeyboardOpen(false);
+        return;
+      }
+      const nextTag = next.tagName;
+      const nextEditable =
+        nextTag === "INPUT" ||
+        nextTag === "TEXTAREA" ||
+        nextTag === "SELECT" ||
+        next.isContentEditable;
+      if (!nextEditable) setKeyboardOpen(false);
+    };
+
+    if (vv) {
+      vv.addEventListener("resize", reconcile);
+      vv.addEventListener("scroll", reconcile);
+    }
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
     reconcile();
+
     return () => {
-      vv.removeEventListener("resize", reconcile);
-      vv.removeEventListener("scroll", reconcile);
+      if (vv) {
+        vv.removeEventListener("resize", reconcile);
+        vv.removeEventListener("scroll", reconcile);
+      }
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
     };
   }, []);
 
@@ -604,7 +678,7 @@ function ChatHeader({
   modelLabel: string;
 }) {
   return (
-    <header className="flex items-center gap-3 border-b border-ink/6 px-4 py-2.5">
+    <header className="flex items-center gap-3 border-b border-ink/6 px-4 py-2">
       <img
         src="/images/claude-mark.png"
         alt=""
@@ -1595,10 +1669,10 @@ export default function App() {
           up to the iOS status bar — without it, the WKWebView's dark
           background shows behind the notch.
           Capacitor with overlaysWebView:false reports the value correctly
-          on most devices, but a minimum 22px fallback is enforced so
+          on most devices, but a minimum 18px fallback is enforced so
           section headings never sit under the earpiece / Dynamic Island
           on any iPhone that doesn't report the inset to the web view. */}
-      <div style={{ height: 'max(env(safe-area-inset-top, 0px), 22px)' }} />
+      <div style={{ height: 'max(env(safe-area-inset-top, 0px), 18px)' }} />
       <div className="flex min-h-0 flex-1 flex-col">
         {tab === "chat" && chatColumn}
         {restTabs}

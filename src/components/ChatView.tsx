@@ -285,7 +285,7 @@ export function ChatView({
   }, [messages, thinking]);
 
   return (
-    <div className="phone-scroll h-full space-y-4 px-4 pb-4 pt-2">
+    <div className="phone-scroll h-full space-y-4 px-4 pb-2 pt-1">
       {messages.map((message, i) => (
         <Bubble
           key={message.id}

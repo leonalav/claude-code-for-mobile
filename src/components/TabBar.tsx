@@ -29,10 +29,14 @@ export function TabBar({
         // Slide the TabBar downward off-screen when the keyboard is up so
         // the iOS keyboard (drawn as a native overlay) covers the space
         // where it would otherwise sit floating above the keyboard.
-        keyboardOpen && "translate-y-full",
+        // `pointer-events-none` while hidden prevents it from catching
+        // stray taps during the keyboard's slide-in/out animation, and
+        // `opacity-0` keeps the border-t from peeking out at the top of
+        // the keyboard during the transition.
+        keyboardOpen && "pointer-events-none translate-y-full opacity-0",
       )}
     >
-      <div className="grid grid-cols-6 px-1 pt-1 pb-2">
+      <div className="grid grid-cols-6 px-1 pt-0.5 pb-1.5">
         {tabs.map((tab) => {
           const active = current === tab.id;
           const Icon = tab.icon;

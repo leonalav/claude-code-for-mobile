@@ -89,7 +89,7 @@ export function Composer({
   const canSend = value.trim().length > 0;
 
   return (
-    <div className="relative px-3 pb-1 pt-2">
+    <div className="relative px-3 pb-1 pt-1.5">
       {showEffortHint && (
         <EffortHint draft={value} onPick={(arg) => onChange(`/effort ${arg}`)} />
       )}

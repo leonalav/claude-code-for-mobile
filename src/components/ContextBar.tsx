@@ -14,7 +14,7 @@ export function ContextBar({
   const nearCompact = pct >= autoCompactWindow;
 
   return (
-    <div className="flex items-center gap-2 border-b border-ink/6 bg-cream-2/60 px-4 py-1.5">
+    <div className="flex items-center gap-2 border-b border-ink/6 bg-cream-2/60 px-4 py-1">
       <Coins size={11} className="shrink-0 text-clay" />
       <div className="h-1 flex-1 overflow-hidden rounded-full bg-mist">
         <div
