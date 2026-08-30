@@ -14,12 +14,24 @@ const tabs: { id: TabId; label: string; icon: typeof MessageSquare }[] = [
 export function TabBar({
   current,
   onChange,
+  keyboardOpen = false,
 }: {
   current: TabId;
   onChange: (id: TabId) => void;
+  /** When true the TabBar slides down so the iOS keyboard (drawn as a
+   *  native overlay) covers the space where it would otherwise sit. */
+  keyboardOpen?: boolean;
 }) {
   return (
-    <nav className="relative shrink-0 border-t border-ink/6 bg-cream backdrop-blur-xl">
+    <nav
+      className={cn(
+        "relative shrink-0 border-t border-ink/6 bg-cream backdrop-blur-xl transition-transform duration-200",
+        // Slide the TabBar downward off-screen when the keyboard is up so
+        // the iOS keyboard (drawn as a native overlay) covers the space
+        // where it would otherwise sit floating above the keyboard.
+        keyboardOpen && "translate-y-full",
+      )}
+    >
       <div className="grid grid-cols-6 px-1 pt-1.5 pb-3">
         {tabs.map((tab) => {
           const active = current === tab.id;

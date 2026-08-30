@@ -27,12 +27,12 @@ export function FileMentionPill({
       className={cn(
         "inline-flex items-center gap-1.5 align-middle",
         dense ? "h-[18px] rounded-md px-1.5 text-[10.5px]" : "h-[22px] rounded-md px-1.5 text-[12px]",
-        "bg-[#1F2A3D] text-[#D5DEEA] font-medium",
-        "border border-[#2C3A52]",
+        // Theme-aware: ink-soft is dark in light mode, light in dark mode.
+        "bg-ink-soft/12 text-ink border border-ink/15",
         className,
       )}
     >
-      <span className="flex h-[14px] w-[14px] items-center justify-center text-[#5EAEFF]">
+      <span className="flex h-[14px] w-[14px] items-center justify-center text-clay">
         <Folder size={12} />
       </span>
       <Icon size={12} />
@@ -42,7 +42,7 @@ export function FileMentionPill({
           type="button"
           onClick={onRemove}
           aria-label="Remove file mention"
-          className="press -mr-0.5 ml-0.5 flex h-3 w-3 items-center justify-center rounded-full text-[#7C8AA0] hover:bg-[#2C3A52] hover:text-[#D5DEEA]"
+          className="press -mr-0.5 ml-0.5 flex h-3 w-3 items-center justify-center rounded-full text-stone hover:bg-ink/10 hover:text-ink"
         >
           ×
         </button>

@@ -73,11 +73,11 @@ export function FilePicker({
 
   return (
     <div
-      className="anim-rise absolute left-3 right-3 bottom-[64px] z-40 max-h-[260px] overflow-hidden rounded-2xl border border-cream/15 bg-ink-soft/95 shadow-2xl backdrop-blur"
+      className="anim-rise absolute left-3 right-3 bottom-[64px] z-40 max-h-[260px] overflow-hidden rounded-2xl border border-ink/15 bg-cream/95 shadow-2xl backdrop-blur"
       style={anchor ? { left: anchor.x, top: anchor.y } : undefined}
       onKeyDown={onKey}
     >
-      <div className="flex items-center gap-2 border-b border-cream/10 px-3 py-2">
+      <div className="flex items-center gap-2 border-b border-ink/10 px-3 py-2">
         <Search size={13} className="text-stone" />
         <input
           ref={inputRef}
@@ -85,7 +85,7 @@ export function FilePicker({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search files…"
-          className="flex-1 bg-transparent text-[12.5px] text-cream placeholder:text-stone/60 focus:outline-none"
+          className="flex-1 bg-transparent text-[12.5px] text-ink placeholder:text-stone/60 focus:outline-none"
         />
         <span className="text-[10px] text-stone">{filtered.length} files</span>
       </div>
@@ -106,11 +106,11 @@ export function FilePicker({
               onClick={() => onPick(f)}
               className={cn(
                 "flex w-full items-center gap-3 px-3 py-1.5 text-left transition-colors",
-                i === highlight ? "bg-cream/10" : "hover:bg-cream/5",
+                i === highlight ? "bg-clay/12" : "hover:bg-blush",
               )}
             >
-              <Icon size={16} />
-              <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-cream">
+              <Icon size={16} className="text-stone" />
+              <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink">
                 {f.name}
               </span>
               <span className="ml-2 truncate font-mono text-[10.5px] text-stone">

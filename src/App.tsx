@@ -85,32 +85,37 @@ function uid(prefix: string) {
 }
 
 /**
- * Belt-and-suspenders fallback for Capacitor iOS keyboard handling.
+ * Detects when the on-screen keyboard is open and manages two side-effects:
  *
- * We set `KeyboardResizeMode: "body"` in capacitor.config.json so the
- * native shell sets `document.body.style.height` inline whenever the
- * keyboard shows/hides. That works most of the time, but on some iOS
- * versions the keyboard's hide event can fire before Capacitor has
- * cleared the inline style — leaving the app visually "stuck" at the
- * shrunken height.
+ *  1. **TabBar hide** — returns `keyboardOpen` so the native shell can push
+ *     the TabBar off-screen (translateY 100%) when the keyboard is up. iOS
+ *     draws the keyboard as a native overlay that covers whatever is at the
+ *     bottom of the WKWebView; pushing the TabBar down makes it sit behind
+ *     that overlay rather than floating above it.
  *
- * This hook watches `visualViewport` (which always reports the actual
- * visible area, regardless of any inline body styles), and clears the
- * stale inline `body.height` whenever the viewport reports no keyboard
- * is covering the screen.
+ *  2. **Stuck-body height** — Capacitor's KeyboardResizeMode:"body" sets an
+ *     inline `body.style.height` when the keyboard opens. When the keyboard
+ *     closes iOS sometimes fires the event *before* Capacitor clears that
+ *     style, leaving the app stuck at the shrunken height. We watch the
+ *     `visualViewport` (which always reflects the true visible area) and
+ *     clear any stale inline height the moment the keyboard is gone.
  */
-function useKeyboardFallback() {
+function useKeyboardState() {
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
   useEffect(() => {
     if (!isNative) return;
     const vv = window.visualViewport;
     if (!vv) return;
 
     const reconcile = () => {
-      // When no keyboard is up, the visual viewport spans the full
-      // window. If Capacitor's inline `body.height` is still set to a
-      // smaller value, body and #root are stuck shrunken — clear it.
+      // visualViewport / window.innerHeight > 0.85 means no keyboard covering
+      // the bottom of the screen (keyboard occupies roughly 40–60% of screen).
       const visibleFraction = vv.height / window.innerHeight;
       const keyboardUp = visibleFraction < 0.85;
+      setKeyboardOpen(keyboardUp);
+
+      // Clear any stale inline body height once the keyboard is gone.
       if (!keyboardUp && document.body.style.height) {
         document.body.style.height = "";
       }
@@ -124,6 +129,8 @@ function useKeyboardFallback() {
       vv.removeEventListener("scroll", reconcile);
     };
   }, []);
+
+  return keyboardOpen;
 }
 
 /** Rough client-side token estimate (~4 chars/token) for the context bar. */
@@ -631,9 +638,9 @@ export default function App() {
 
   // Initialize Capacitor plugins (StatusBar, SplashScreen) on native.
   useCapacitorInit();
-  // Safety net: clears a stuck `body.style.height` if Capacitor's
-  // keyboardDidHide event ever lags behind the visualViewport.
-  useKeyboardFallback();
+  // Tracks whether the on-screen keyboard is up. Used to push the TabBar
+  // behind the keyboard and as a safety net for body-height stuck states.
+  const keyboardOpen = useKeyboardState();
 
   // Any tab change exits preview-landscape and closes the fullscreen
   // preview overlay so the frame returns to portrait.
@@ -1581,19 +1588,18 @@ export default function App() {
     </div>
   ) : (
     <div className="flex h-full flex-col bg-cream text-ink">
-      {/* Defensive top safe-area. Capacitor (with overlaysWebView: false)
-          already pushes the WKWebView below the iOS status bar, so this
-          normally resolves to 0. If a future iOS or Android change ever
-          causes the web view to extend under the status bar, this kicks
-          in and keeps the chat header from being painted under the clock. */}
-      <div
-        className="flex min-h-0 flex-1 flex-col"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      >
+      {/* Top safe-area filler: a fixed-height bar at the very top of the
+          screen with cream background. On devices that report a non-zero
+          safe-area-inset-top (iPhone notch, dynamic island, Android
+          cutouts), this ensures the cream background extends all the way
+          up to the iOS status bar — without it, the WKWebView's dark
+          background shows behind the notch. Falls back to 0px on web. */}
+      <div style={{ height: 'env(safe-area-inset-top, 0px)' }} />
+      <div className="flex min-h-0 flex-1 flex-col">
         {tab === "chat" && chatColumn}
         {restTabs}
       </div>
-      <TabBar current={tab} onChange={setTab} />
+      <TabBar current={tab} onChange={setTab} keyboardOpen={keyboardOpen} />
       {overlays}
     </div>
   );
